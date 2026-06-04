@@ -33,10 +33,10 @@ function Wrapped() {
         globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', image: dataUrl }))
       } else {
         console.log('[poc_share] captured image:', dataUrl.slice(0, 80) + '...')
-        setTimeout(() => setShowButton(true), 2000)
       }
     } finally {
       setCapturing(false)
+      setShowButton(true)
     }
   }
 
