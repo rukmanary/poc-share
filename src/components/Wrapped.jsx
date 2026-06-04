@@ -27,7 +27,7 @@ function Wrapped() {
 
     setCapturing(true)
     try {
-      const dataUrl = await domToPng(frameRef.current)
+      const dataUrl = await domToPng(frameRef.current, { scale: 3 })
 
       if (globalThis.ReactNativeWebView) {
         globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', image: dataUrl }))
