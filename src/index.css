@@ -200,3 +200,7 @@ html, body {
 .share-btn:active {
   opacity: 0.6;
 }
+
+.share-btn--web {
+  top: 64px;
+}
