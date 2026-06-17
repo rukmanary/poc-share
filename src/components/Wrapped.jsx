@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { domToPng } from 'modern-screenshot'
 
 function ShareIcon() {
@@ -25,10 +25,54 @@ function UploadIcon() {
   )
 }
 
+function MenuIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="19" cy="12" r="1.5" />
+    </svg>
+  )
+}
+
+const SHARE_OPTIONS = [
+  { platform: 'instagram_story', label: 'Instagram Story', emoji: '📸' },
+  { platform: 'whatsapp', label: 'WhatsApp', emoji: '💬' },
+  { platform: 'others', label: 'Lainnya', emoji: '🔗' },
+]
+
+function platformLabel(platform) {
+  return SHARE_OPTIONS.find((opt) => opt.platform === platform)?.label ?? platform
+}
+
 function Wrapped() {
   const frameRef = useRef(null)
   const [showButton, setShowButton] = useState(true)
   const [capturing, setCapturing] = useState(false)
+  const [showSheet, setShowSheet] = useState(false)
+  const [shareResultPlatform, setShareResultPlatform] = useState(null)
+
+  useEffect(() => {
+    const handleNativeMessage = (event) => {
+      let payload
+      try {
+        payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+      } catch {
+        return
+      }
+      if (payload?.type === 'shareResult') {
+        setShareResultPlatform(payload.platform)
+      }
+    }
+    // Android WebView emits on `document`, iOS on `window` — listen on both.
+    window.addEventListener('message', handleNativeMessage)
+    document.addEventListener('message', handleNativeMessage)
+    return () => {
+      window.removeEventListener('message', handleNativeMessage)
+      document.removeEventListener('message', handleNativeMessage)
+    }
+  }, [])
 
   const captureImage = async () => {
     setShowButton(false)
@@ -71,6 +115,16 @@ function Wrapped() {
     }
   }
 
+  const handleSelectPlatform = async (platform) => {
+    setShowSheet(false)
+    const dataUrl = await captureImage()
+    if (globalThis.ReactNativeWebView) {
+      globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', platform, image: dataUrl }))
+    } else {
+      console.log(`[poc_share] share to ${platform}:`, dataUrl.slice(0, 80) + '...')
+    }
+  }
+
   return (
     <div className="story-frame" ref={frameRef}>
       <div className="header">
@@ -102,7 +156,45 @@ function Wrapped() {
           <button className="share-btn share-btn--web" onClick={handleWebShare} aria-label="Share to social media">
             <UploadIcon />
           </button>
+          <button className="share-btn share-btn--menu" onClick={() => setShowSheet(true)} aria-label="Pilih platform share">
+            <MenuIcon />
+          </button>
         </>
+      )}
+
+      {showSheet && (
+        <div className="sheet-overlay" onClick={() => setShowSheet(false)}>
+          <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="bottom-sheet__handle" />
+            <p className="bottom-sheet__title">Bagikan ke</p>
+            {SHARE_OPTIONS.map((opt) => (
+              <button
+                key={opt.platform}
+                className="bottom-sheet__option"
+                onClick={() => handleSelectPlatform(opt.platform)}
+              >
+                <span className="bottom-sheet__emoji">{opt.emoji}</span>
+                <span>{opt.label}</span>
+              </button>
+            ))}
+            <button className="bottom-sheet__cancel" onClick={() => setShowSheet(false)}>
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
+
+      {shareResultPlatform && (
+        <div className="result-overlay" onClick={() => setShareResultPlatform(null)}>
+          <div className="result-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="result-modal__icon">✅</div>
+            <p className="result-modal__text">Berhasil dibagikan ke</p>
+            <p className="result-modal__platform">{platformLabel(shareResultPlatform)}</p>
+            <button className="result-modal__close" onClick={() => setShareResultPlatform(null)}>
+              OK
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )
