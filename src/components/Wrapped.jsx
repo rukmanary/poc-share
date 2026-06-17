@@ -74,6 +74,12 @@ function Wrapped() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!shareResultPlatform) return
+    const timer = setTimeout(() => setShareResultPlatform(null), 3000)
+    return () => clearTimeout(timer)
+  }, [shareResultPlatform])
+
   const captureImage = async () => {
     setShowButton(false)
     await new Promise(resolve => requestAnimationFrame(resolve))
@@ -119,7 +125,7 @@ function Wrapped() {
     setShowSheet(false)
     const dataUrl = await captureImage()
     if (globalThis.ReactNativeWebView) {
-      globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', platform, image: dataUrl }))
+      globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'shareSingle', platform, image: dataUrl }))
     } else {
       console.log(`[poc_share] share to ${platform}:`, dataUrl.slice(0, 80) + '...')
     }
@@ -145,6 +151,12 @@ function Wrapped() {
       <div className="car-image-wrapper">
         <img src="/car.svg" alt="BYD M6" className="car-image" />
       </div>
+
+      {shareResultPlatform && (
+        <p className="share-result-text">
+          Berhasil dibagikan ke <strong>{platformLabel(shareResultPlatform)}</strong>
+        </p>
+      )}
 
       <div className="stars">✦ ✦ ✦ ✦ ✦</div>
 
@@ -179,19 +191,6 @@ function Wrapped() {
             ))}
             <button className="bottom-sheet__cancel" onClick={() => setShowSheet(false)}>
               Batal
-            </button>
-          </div>
-        </div>
-      )}
-
-      {shareResultPlatform && (
-        <div className="result-overlay" onClick={() => setShareResultPlatform(null)}>
-          <div className="result-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="result-modal__icon">✅</div>
-            <p className="result-modal__text">Berhasil dibagikan ke</p>
-            <p className="result-modal__platform">{platformLabel(shareResultPlatform)}</p>
-            <button className="result-modal__close" onClick={() => setShareResultPlatform(null)}>
-              OK
             </button>
           </div>
         </div>

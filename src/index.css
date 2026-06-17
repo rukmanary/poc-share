@@ -165,6 +165,22 @@ html, body {
   filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
 }
 
+/* ─── Share Result Text ───────────────────────────────── */
+
+.share-result-text {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+  color: #ffd700;
+  opacity: 0;
+  animation: share-result-fade-in 0.25s ease-out forwards;
+}
+
+@keyframes share-result-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Stars ornament ──────────────────────────────────── */
 
 .stars {
@@ -295,73 +311,4 @@ html, body {
 
 .bottom-sheet__cancel:active {
   opacity: 0.6;
-}
-
-/* ─── Result Modal ────────────────────────────────────── */
-
-.result-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 24px;
-}
-
-.result-modal {
-  width: 100%;
-  max-width: 320px;
-  background: #1c1b2e;
-  border-radius: 20px;
-  padding: 28px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 6px;
-  color: #fff;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  animation: result-pop-in 0.18s ease-out;
-}
-
-@keyframes result-pop-in {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.result-modal__icon {
-  font-size: 36px;
-  margin-bottom: 4px;
-}
-
-.result-modal__text {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.75;
-}
-
-.result-modal__platform {
-  margin: 0 0 14px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffd700;
-}
-
-.result-modal__close {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  background: #ffd700;
-  color: #1c1b2e;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.result-modal__close:active {
-  opacity: 0.75;
 }
