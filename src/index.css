@@ -165,22 +165,6 @@ html, body {
   filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
 }
 
-/* ─── Share Result Text ───────────────────────────────── */
-
-.share-result-text {
-  margin: 0;
-  font-size: 14px;
-  text-align: center;
-  color: #ffd700;
-  opacity: 0;
-  animation: share-result-fade-in 0.25s ease-out forwards;
-}
-
-@keyframes share-result-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* ─── Stars ornament ──────────────────────────────────── */
 
 .stars {

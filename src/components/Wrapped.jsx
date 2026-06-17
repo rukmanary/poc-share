@@ -51,7 +51,6 @@ function Wrapped() {
   const [showButton, setShowButton] = useState(true)
   const [capturing, setCapturing] = useState(false)
   const [showSheet, setShowSheet] = useState(false)
-  const [shareResultPlatform, setShareResultPlatform] = useState(null)
 
   useEffect(() => {
     const handleNativeMessage = (event) => {
@@ -62,7 +61,7 @@ function Wrapped() {
         return
       }
       if (payload?.type === 'shareResult') {
-        setShareResultPlatform(payload.platform)
+        console.log(`[poc_share] shareResult: ${platformLabel(payload.platform)} (success: ${payload.success})`)
       }
     }
     // Android WebView emits on `document`, iOS on `window` — listen on both.
@@ -73,12 +72,6 @@ function Wrapped() {
       document.removeEventListener('message', handleNativeMessage)
     }
   }, [])
-
-  useEffect(() => {
-    if (!shareResultPlatform) return
-    const timer = setTimeout(() => setShareResultPlatform(null), 3000)
-    return () => clearTimeout(timer)
-  }, [shareResultPlatform])
 
   const captureImage = async () => {
     setShowButton(false)
@@ -151,12 +144,6 @@ function Wrapped() {
       <div className="car-image-wrapper">
         <img src="/car.svg" alt="BYD M6" className="car-image" />
       </div>
-
-      {shareResultPlatform && (
-        <p className="share-result-text">
-          Berhasil dibagikan ke <strong>{platformLabel(shareResultPlatform)}</strong>
-        </p>
-      )}
 
       <div className="stars">✦ ✦ ✦ ✦ ✦</div>
 
