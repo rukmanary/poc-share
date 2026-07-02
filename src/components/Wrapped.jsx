@@ -1,128 +1,181 @@
-import { useEffect, useRef, useState } from 'react'
-import { domToPng } from 'modern-screenshot'
+import { useEffect, useRef, useState } from "react";
+import { domToPng } from "modern-screenshot";
 
 function ShareIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#fff"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="18" cy="5" r="3" />
       <circle cx="6" cy="12" r="3" />
       <circle cx="18" cy="19" r="3" />
       <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
       <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
     </svg>
-  )
+  );
 }
 
 function UploadIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#fff"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
       <polyline points="16 6 12 2 8 6" />
       <line x1="12" y1="2" x2="12" y2="15" />
     </svg>
-  )
+  );
 }
 
 function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#fff"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="5" cy="12" r="1.5" />
       <circle cx="12" cy="12" r="1.5" />
       <circle cx="19" cy="12" r="1.5" />
     </svg>
-  )
+  );
 }
 
 const SHARE_OPTIONS = [
-  { platform: 'instagram_story', label: 'Instagram Story', emoji: '📸' },
-  { platform: 'whatsapp', label: 'WhatsApp', emoji: '💬' },
-  { platform: 'others', label: 'Lainnya', emoji: '🔗' },
-]
+  { platform: "instagram_story", label: "Instagram Story", emoji: "📸" },
+  { platform: "whatsapp", label: "WhatsApp", emoji: "💬" },
+  { platform: "others", label: "Lainnya", emoji: "🔗" },
+];
 
 function platformLabel(platform) {
-  return SHARE_OPTIONS.find((opt) => opt.platform === platform)?.label ?? platform
+  return (
+    SHARE_OPTIONS.find((opt) => opt.platform === platform)?.label ?? platform
+  );
 }
 
+// Ganti dengan link tujuan yang sebenarnya.
+const TARGET_LINK = "https://api.dev.src.id/deeplink/fdp0ch";
+
 function Wrapped() {
-  const frameRef = useRef(null)
-  const [showButton, setShowButton] = useState(true)
-  const [capturing, setCapturing] = useState(false)
-  const [showSheet, setShowSheet] = useState(false)
+  const frameRef = useRef(null);
+  const [showButton, setShowButton] = useState(true);
+  const [capturing, setCapturing] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
 
   useEffect(() => {
     const handleNativeMessage = (event) => {
-      let payload
+      let payload;
       try {
-        payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+        payload =
+          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch {
-        return
+        return;
       }
-      if (payload?.type === 'shareResult') {
-        console.log(`[poc_share] shareResult: ${platformLabel(payload.platform)} (success: ${payload.success})`)
+      if (payload?.type === "shareResult") {
+        console.log(
+          `[poc_share] shareResult: ${platformLabel(payload.platform)} (success: ${payload.success})`,
+        );
       }
-    }
+    };
     // Android WebView emits on `document`, iOS on `window` — listen on both.
-    window.addEventListener('message', handleNativeMessage)
-    document.addEventListener('message', handleNativeMessage)
+    window.addEventListener("message", handleNativeMessage);
+    document.addEventListener("message", handleNativeMessage);
     return () => {
-      window.removeEventListener('message', handleNativeMessage)
-      document.removeEventListener('message', handleNativeMessage)
-    }
-  }, [])
+      window.removeEventListener("message", handleNativeMessage);
+      document.removeEventListener("message", handleNativeMessage);
+    };
+  }, []);
 
   const captureImage = async () => {
-    setShowButton(false)
-    await new Promise(resolve => requestAnimationFrame(resolve))
-    setCapturing(true)
+    setShowButton(false);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    setCapturing(true);
     try {
-      return await domToPng(frameRef.current, { scale: 3 })
+      return await domToPng(frameRef.current, { scale: 3 });
     } finally {
-      setCapturing(false)
-      setShowButton(true)
+      setCapturing(false);
+      setShowButton(true);
     }
-  }
+  };
 
   const handleShare = async () => {
-    const dataUrl = await captureImage()
+    const dataUrl = await captureImage();
     if (globalThis.ReactNativeWebView) {
-      globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'share', image: dataUrl }))
+      globalThis.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: "share", image: dataUrl }),
+      );
     } else {
-      console.log('[poc_share] captured image:', dataUrl.slice(0, 80) + '...')
+      console.log("[poc_share] captured image:", dataUrl.slice(0, 80) + "...");
     }
-  }
+  };
 
   const handleWebShare = async () => {
-    const dataUrl = await captureImage()
-    const res = await fetch(dataUrl)
-    const blob = await res.blob()
-    const file = new File([blob], 'pemenang.png', { type: 'image/png' })
+    const dataUrl = await captureImage();
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], "pemenang.png", { type: "image/png" });
 
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({
         files: [file],
-        title: 'Undian Berhadiah 2025',
-        text: 'Selamat kepada pemenang undian berhadiah!',
-      })
+        title: "Undian Berhadiah 2025",
+        text: "Selamat kepada pemenang undian berhadiah!",
+      });
     } else {
-      const a = document.createElement('a')
-      a.href = dataUrl
-      a.download = 'pemenang.png'
-      a.click()
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "pemenang.png";
+      a.click();
     }
-  }
+  };
+
+  const handleNavigate = () => {
+    globalThis.location.href = TARGET_LINK;
+  };
+
+  const handlePostLink = () => {
+    if (globalThis.ReactNativeWebView) {
+      globalThis.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: "openLink", url: TARGET_LINK }),
+      );
+    } else {
+      console.log("[poc_share] openLink:", TARGET_LINK);
+    }
+  };
 
   const handleSelectPlatform = async (platform) => {
-    setShowSheet(false)
-    const dataUrl = await captureImage()
+    setShowSheet(false);
+    const dataUrl = await captureImage();
     if (globalThis.ReactNativeWebView) {
-      globalThis.ReactNativeWebView.postMessage(JSON.stringify({ type: 'shareSingle', platform, image: dataUrl }))
+      globalThis.ReactNativeWebView.postMessage(
+        JSON.stringify({ type: "shareSingle", platform, image: dataUrl }),
+      );
     } else {
-      console.log(`[poc_share] share to ${platform}:`, dataUrl.slice(0, 80) + '...')
+      console.log(
+        `[poc_share] share to ${platform}:`,
+        dataUrl.slice(0, 80) + "...",
+      );
     }
-  }
+  };
 
   return (
     <div className="story-frame" ref={frameRef}>
@@ -147,23 +200,55 @@ function Wrapped() {
 
       <div className="stars">✦ ✦ ✦ ✦ ✦</div>
 
+      {!capturing && (
+        <div className="link-actions">
+          <button className="link-btn" onClick={handleNavigate}>
+            Buka Link
+          </button>
+          <button
+            className="link-btn link-btn--secondary"
+            onClick={handlePostLink}
+          >
+            Kirim Link
+          </button>
+        </div>
+      )}
+
       {showButton && !capturing && (
         <>
-          <button className="share-btn" onClick={handleShare} aria-label="Share via app">
+          <button
+            className="share-btn"
+            onClick={handleShare}
+            aria-label="Share via app"
+          >
             <ShareIcon />
           </button>
-          <button className="share-btn share-btn--web" onClick={handleWebShare} aria-label="Share to social media">
+          <button
+            className="share-btn share-btn--web"
+            onClick={handleWebShare}
+            aria-label="Share to social media"
+          >
             <UploadIcon />
           </button>
-          <button className="share-btn share-btn--menu" onClick={() => setShowSheet(true)} aria-label="Pilih platform share">
+          <button
+            className="share-btn share-btn--menu"
+            onClick={() => setShowSheet(true)}
+            aria-label="Pilih platform share"
+          >
             <MenuIcon />
           </button>
         </>
       )}
 
       {showSheet && (
-        <div className="sheet-overlay" onClick={() => setShowSheet(false)}>
-          <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-overlay">
+          <button
+            type="button"
+            className="sheet-overlay__backdrop"
+            aria-label="Tutup"
+            onClick={() => setShowSheet(false)}
+          />
+          <div className="bottom-sheet">
             <div className="bottom-sheet__handle" />
             <p className="bottom-sheet__title">Bagikan ke</p>
             {SHARE_OPTIONS.map((opt) => (
@@ -176,14 +261,17 @@ function Wrapped() {
                 <span>{opt.label}</span>
               </button>
             ))}
-            <button className="bottom-sheet__cancel" onClick={() => setShowSheet(false)}>
+            <button
+              className="bottom-sheet__cancel"
+              onClick={() => setShowSheet(false)}
+            >
               Batal
             </button>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Wrapped
+export default Wrapped;
